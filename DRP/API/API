@@ -1,0 +1,205 @@
+-- Áreas de soporte
+CREATE TABLE areas_soporte (
+    id_area INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    descripcion TEXT
+);
+
+-- Roles de usuario
+CREATE TABLE roles (
+    id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL UNIQUE
+);
+
+-- Usuarios
+CREATE TABLE usuarios (
+    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    id_rol INTEGER NOT NULL,
+    id_area INTEGER,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_rol) REFERENCES roles(id_rol),
+    FOREIGN KEY (id_area) REFERENCES areas_soporte(id_area)
+);
+
+-- Clientes
+CREATE TABLE clientes (
+    id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    telefono TEXT,
+    email TEXT UNIQUE,
+    direccion TEXT
+);
+
+-- Categorías y subcategorías de tickets
+CREATE TABLE categorias_tickets (
+    id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL
+);
+
+CREATE TABLE subcategorias_tickets (
+    id_subcategoria INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_categoria INTEGER NOT NULL,
+    nombre TEXT NOT NULL,
+    FOREIGN KEY (id_categoria) REFERENCES categorias_tickets(id_categoria)
+);
+
+-- Estados de tickets
+CREATE TABLE estados_tickets (
+    id_estado INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL
+);
+
+-- SLA
+CREATE TABLE slas (
+    id_sla INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    tiempo_respuesta INTEGER NOT NULL,
+    tiempo_resolucion INTEGER,
+    prioridad TEXT
+);
+
+-- Tickets
+CREATE TABLE tickets (
+    id_ticket INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    descripcion TEXT,
+    id_cliente INTEGER NOT NULL,
+    id_usuario INTEGER NOT NULL,
+    id_estado INTEGER NOT NULL,
+    id_subcategoria INTEGER,
+    id_sla INTEGER,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_estado) REFERENCES estados_tickets(id_estado),
+    FOREIGN KEY (id_subcategoria) REFERENCES subcategorias_tickets(id_subcategoria),
+    FOREIGN KEY (id_sla) REFERENCES slas(id_sla)
+);
+
+-- Comentarios en tickets
+CREATE TABLE comentarios_tickets (
+    id_comentario INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_ticket INTEGER NOT NULL,
+    id_usuario INTEGER NOT NULL,
+    comentario TEXT NOT NULL,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_ticket) REFERENCES tickets(id_ticket),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+);
+
+-- Adjuntos en tickets
+CREATE TABLE adjuntos_tickets (
+    id_adjunto INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_ticket INTEGER NOT NULL,
+    nombre_archivo TEXT NOT NULL,
+    ruta_archivo TEXT,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_ticket) REFERENCES tickets(id_ticket)
+);
+
+-- Historial de tickets
+CREATE TABLE historial_tickets (
+    id_historial INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_ticket INTEGER NOT NULL,
+    id_estado_anterior INTEGER,
+    id_estado_nuevo INTEGER,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_ticket) REFERENCES tickets(id_ticket),
+    FOREIGN KEY (id_estado_anterior) REFERENCES estados_tickets(id_estado),
+    FOREIGN KEY (id_estado_nuevo) REFERENCES estados_tickets(id_estado)
+);
+
+-- Llamadas
+CREATE TABLE llamadas (
+    id_llamada INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_cliente INTEGER NOT NULL,
+    id_usuario INTEGER NOT NULL,
+    id_ticket INTEGER,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    duracion INTEGER,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_ticket) REFERENCES tickets(id_ticket)
+);
+
+-- Encuestas
+CREATE TABLE encuestas (
+    id_encuesta INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario INTEGER NOT NULL,
+    apreciacion TEXT,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+);
+
+
+CREATE TABLE empleados_rrhh (
+    id_empleado INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    apellido TEXT NOT NULL,
+    puesto TEXT,
+    departamento TEXT,
+    tipo_contrato TEXT,
+    salario DECIMAL(11,2),
+    fecha_ingreso DATE,
+    estado_empleado TEXT DEFAULT 'Activo'
+);
+
+CREATE TABLE ausencias (
+    id_ausencia INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_empleado INTEGER NOT NULL,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    descripcion_motivo TEXT,
+    FOREIGN KEY (id_empleado) REFERENCES empleados_rrhh(id_empleado)
+);
+
+CREATE TABLE descuentos_rrhh (
+    id_descuento INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_empleado INTEGER NOT NULL,
+    concepto TEXT,
+    monto DECIMAL(10,2),
+    FOREIGN KEY (id_empleado) REFERENCES empleados_rrhh(id_empleado)
+);
+
+CREATE TABLE asistencia (
+    id_asistencia INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_empleado INTEGER NOT NULL,
+    fecha DATE,
+    hora_entrada TIME,
+    hora_salida TIME,
+    FOREIGN KEY (id_empleado) REFERENCES empleados_rrhh(id_empleado)
+);
+
+CREATE TABLE planilla (
+    id_planilla INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_empleado INTEGER NOT NULL,
+    mes INTEGER,
+    anio INTEGER,
+    total_pago DECIMAL(10,2),
+    FOREIGN KEY (id_empleado) REFERENCES empleados_rrhh(id_empleado)
+);
+
+
+CREATE TABLE cuentas_contables (
+    id_cuenta INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT UNIQUE NOT NULL,
+    nombre TEXT NOT NULL
+);
+
+CREATE TABLE asientos_contables (
+    id_asiento INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha DATE NOT NULL,
+    descripcion TEXT
+);
+
+CREATE TABLE movimientos_contables (
+    id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_asiento INTEGER NOT NULL,
+    id_cuenta INTEGER NOT NULL,
+    monto DECIMAL(11,2) NOT NULL,
+    FOREIGN KEY (id_asiento) REFERENCES asientos_contables(id_asiento),
+    FOREIGN KEY (id_cuenta) REFERENCES cuentas_contables(id_cuenta)
+);

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DRP Frontend</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; }
+    h1 { color: #2a7f62; }
+    .ticket { border: 1px solid #ddd; border-radius: 4px; padding: 12px; margin: 8px 0; }
+    button { padding: 8px 12px; border-radius: 4px; border: none; background:#2a7f62; color: #fff; cursor:pointer; }
+    button:hover { background:#24684f; }
+  </style>
+</head>
+<body>
+  <h1>DRP Frontend</h1>
+  <p>Consulta la API <code>/tickets</code> en: <strong>http://localhost:8000</strong></p>
+  <div><button id="load">Cargar tickets</button></div>
+  <div id="output"></div>
+  <script>
+    const base = 'http://localhost:8000';
+    const output = document.getElementById('output');
+    document.getElementById('load').addEventListener('click', async () => {
+      output.innerHTML = 'Cargando...';
+      try {
+        const res = await fetch(base + '/tickets');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          output.innerHTML = '<em>No hay tickets</em>';
+          return;
+        }
+        output.innerHTML = data.map(t =>
+          `<div class="ticket"><strong>#${t.id_ticket} ${t.titulo}</strong><br>${t.descripcion||''}<br>cliente:${t.id_cliente}, usuario:${t.id_usuario}, estado:${t.id_estado}</div>`
+        ).join('');
+      } catch (err) {
+        output.innerHTML = '<span style="color:red">Error: '+err.message+'</span>';
+      }
+    });
+  </script>
+</body>
+</html>
